@@ -17,6 +17,13 @@ class BNShipOrientation(Enum):
     HORIZONTAL = (1, 0)
     VERTICAL = (0, 1)
 
+class BNCellStatus(Enum):
+    """Represents the status of a cell from a player perspective.
+    """
+    HIDDEN = 0
+    MISSED = 1
+    HIT = 2
+
 
 class BNShip:
     """Represents a ship of the Bataille Navale.
@@ -49,9 +56,23 @@ class BNShip:
 class BNPlayer:
     """Represents a player of the Bataille Navale.
     """
-    def __init__(self, ships) -> None:
-        self.sightGrid = set()
-        self.shipsGrid = ships
+    def __init__(self, ships: List[BNShip]) -> None:
+        self.discoveredGrid = set()
+        self.shipsList = ships
+        self.shipCellPos = set()
+        for ship in self.shipsList:
+            for cell in ship.get_cells():
+                self.shipCellPos.add(cell)
+        
+
+    def get_discovered_board(self) -> List[List[BNCellStatus]]:
+        res = [[BNCellStatus.HIDDEN for _ in range(BOARD_LENGTH)] for _ in range(BOARD_LENGTH)]
+        for discovered_pos in self.discoveredGrid:
+            if discovered_pos in self.shipCellPos:
+                res[discovered_pos[1]][discovered_pos[0]] = BNCellStatus.HIT
+            else:
+                res[discovered_pos[1]][discovered_pos[0]] = BNCellStatus.MISSED
+        return res
 
 
 class BatailleNavale:
@@ -63,6 +84,25 @@ class BatailleNavale:
             -1: BNPlayer(create_random_ships_grid())
         }
         self.turn = 1
+
+
+    def play(self, x: int, y: int) -> bool:
+        """Makes the right player shoot somewhere on the board.
+
+        Args:
+            x (int): The x coordinate of the shoot.
+            y (int): The y coordinate of the shoot.
+
+        Returns:
+            bool: True if everything went well, False otherwise.
+        """
+        if not (0 <= x < BOARD_LENGTH and 0 <= y < BOARD_LENGTH):
+            return False # Shot out of the board
+        if (x, y) in self.players[-self.turn].discoveredGrid:
+            return False # Already shot there
+        self.players[-self.turn].discoveredGrid.add((x, y))
+        self.turn = -self.turn # Next player
+        return True
 
 
 # - Utils
@@ -117,18 +157,3 @@ def create_random_ships_grid() -> List[BNShip]:
         ships.append(ship)
     return ships
 
-
-def ships_to_ascii(ships: List[BNShip]) -> str:
-    """Creates a ~beautiful~ ASCII grid from the ship list.
-
-    Args:
-        ships (List[BNShip]): The ships on the grid.
-
-    Returns:
-        str: The ASCII drawing.
-    """
-    grid = [['.' for _ in range(BOARD_LENGTH)] for _ in range(BOARD_LENGTH)]
-    for ship in ships:
-        for cell in ship.get_cells():
-            grid[cell[1]][cell[0]] = 'X'
-    return '\n'.join([''.join(line) for line in grid])
