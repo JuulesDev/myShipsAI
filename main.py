@@ -1,9 +1,10 @@
 from pprint import pprint
+from random import randint
 from batailleNavale import *
 
-'''
+"""
     98% of the content of this file is for test purposes!
-'''
+"""
 
 
 def ships_to_ascii(ships: List[BNShip]) -> str:
@@ -15,40 +16,48 @@ def ships_to_ascii(ships: List[BNShip]) -> str:
     Returns:
         str: The ASCII drawing.
     """
-    grid = [['.' for _ in range(BOARD_LENGTH)] for _ in range(BOARD_LENGTH)]
+    grid = [["." for _ in range(BOARD_LENGTH)] for _ in range(BOARD_LENGTH)]
     for ship in ships:
         for cell in ship.get_cells():
-            grid[cell[1]][cell[0]] = 'X'
-    return '\n'.join([''.join(line) for line in grid])
+            grid[cell[1]][cell[0]] = "X"
+    return "\n".join(["".join(line) for line in grid])
 
 
-if __name__ == '__main__':
+def print_board(game: BatailleNavale) -> None:
+    board = game.players[-game.turn].get_discovered_board()
+    txt_board = ""
+    for y in range(len(board)):
+        for x in range(len(board[y])):
+            if board[y][x] == BNCellStatus.HIT:
+                txt_board += "X"
+            elif board[y][x] == BNCellStatus.SUNK:
+                txt_board += "$"
+            elif board[y][x] == BNCellStatus.MISSED:
+                txt_board += "O"
+            else:
+                txt_board += "."
+        txt_board += "\n"
+    print(txt_board)
+
+
+if __name__ == "__main__":
     game = BatailleNavale()
 
     while True:
-        board = game.players[-game.turn].get_discovered_board()
-        txt_board = ''
-        for y in range(len(board)):
-            for x in range(len(board[y])):
-                if board[y][x] == BNCellStatus.HIDDEN:
-                    txt_board += '.'
-                elif board[y][x] == BNCellStatus.MISSED:
-                    txt_board += 'O'
-                else:
-                    txt_board += 'X'
-            txt_board += '\n'
-        print(txt_board)
+        if game.turn == 1:
+            print_board(game)
 
-        player = 1 if game.turn == 1 else 2
-        pos = input('Player {player}: ').split(' ')
+            pos = input("Player 1: ").split(" ")
 
-        if len(pos) != 2:
-            continue
-        
-        try:
-            pos = list(map(int, pos))
-        except:
-            continue
+            if len(pos) != 2:
+                continue
 
-        if not game.play(pos[0], pos[1]):
-            print('! TRY AGAIN !')
+            try:
+                pos = list(map(int, pos))
+            except:
+                continue
+
+            if not game.play(pos[0], pos[1]):
+                print("! TRY AGAIN !")
+        else:
+            game.play(randint(0, 10), randint(0, 10))

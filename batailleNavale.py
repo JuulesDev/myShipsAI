@@ -3,19 +3,19 @@ from enum import Enum
 import random as rd
 
 BOARD_LENGTH = 10
-SHIP_SIZES = [
-    5, 4, 3, 3, 2
-]
+SHIP_SIZES = [5, 4, 3, 3, 2]
 
 # - Classes
 
+
 class BNShipOrientation(Enum):
     """Represents the orientation that can have a BNShip.
-    
+
     (The values assigned to both are the vectors that give us all the cells of a ship from the first one)
     """
     HORIZONTAL = (1, 0)
     VERTICAL = (0, 1)
+
 
 class BNCellStatus(Enum):
     """Represents the status of a cell from a player perspective.
@@ -23,13 +23,17 @@ class BNCellStatus(Enum):
     HIDDEN = 0
     MISSED = 1
     HIT = 2
+    SUNK = 3
 
 
 class BNShip:
     """Represents a ship of the Bataille Navale.
     """
-    def __init__(self, x: int, y: int, length: int, orientation: BNShipOrientation) -> None:
-        # The x and y coordinates always refer to the most top left 'cell' of the ship. 
+
+    def __init__(
+        self, x: int, y: int, length: int, orientation: BNShipOrientation
+    ) -> None:
+        # The x and y coordinates always refer to the most top left 'cell' of the ship.
         self.x = x
         self.y = y
         self.length = length
@@ -56,35 +60,58 @@ class BNShip:
 class BNPlayer:
     """Represents a player of the Bataille Navale.
     """
+
     def __init__(self, ships: List[BNShip]) -> None:
-        self.discoveredGrid = set()
-        self.shipsList = ships
-        self.shipCellPos = set()
-        for ship in self.shipsList:
+        self.discovered_cells = set()
+        self.ships_list = ships
+        self.ships_cells = set()
+        for ship in self.ships_list:
             for cell in ship.get_cells():
-                self.shipCellPos.add(cell)
-        
+                self.ships_cells.add(cell)
+        self.ships_sunk = []
+        self.ships_sunk_cells = set()
 
     def get_discovered_board(self) -> List[List[BNCellStatus]]:
-        res = [[BNCellStatus.HIDDEN for _ in range(BOARD_LENGTH)] for _ in range(BOARD_LENGTH)]
-        for discovered_pos in self.discoveredGrid:
-            if discovered_pos in self.shipCellPos:
-                res[discovered_pos[1]][discovered_pos[0]] = BNCellStatus.HIT
+        res = [
+            [BNCellStatus.HIDDEN for _ in range(BOARD_LENGTH)]
+            for _ in range(BOARD_LENGTH)
+        ]
+        for discovered_pos in self.discovered_cells:
+            if discovered_pos in self.ships_cells:
+                if discovered_pos in self.ships_sunk_cells:
+                    res[discovered_pos[1]][discovered_pos[0]] = BNCellStatus.SUNK
+                else:
+                    res[discovered_pos[1]][discovered_pos[0]] = BNCellStatus.HIT
             else:
                 res[discovered_pos[1]][discovered_pos[0]] = BNCellStatus.MISSED
         return res
+
+    def update_ships_sunk(self) -> None:
+        """Update the list of sunk ships.
+        """
+        self.ships_sunk = []
+        for ship in self.ships_list:
+            for cell in ship.get_cells():
+                if not cell in self.discovered_cells:
+                    break
+            else:
+                self.ships_sunk.append(ship)
+        self.ships_sunk_cells = set()
+        for ship in self.ships_sunk:
+            for cell in ship.get_cells():
+                self.ships_sunk_cells.add(cell)
 
 
 class BatailleNavale:
     """Represents a game of Bataille Navale.
     """
+
     def __init__(self) -> None:
         self.players = {
             1: BNPlayer(create_random_ships_grid()),
-            -1: BNPlayer(create_random_ships_grid())
+            -1: BNPlayer(create_random_ships_grid()),
         }
         self.turn = 1
-
 
     def play(self, x: int, y: int) -> bool:
         """Makes the right player shoot somewhere on the board.
@@ -97,11 +124,14 @@ class BatailleNavale:
             bool: True if everything went well, False otherwise.
         """
         if not (0 <= x < BOARD_LENGTH and 0 <= y < BOARD_LENGTH):
-            return False # Shot out of the board
-        if (x, y) in self.players[-self.turn].discoveredGrid:
-            return False # Already shot there
-        self.players[-self.turn].discoveredGrid.add((x, y))
-        self.turn = -self.turn # Next player
+            return False  # Shot out of the board
+        if (x, y) in self.players[-self.turn].discovered_cells:
+            return False  # Already shot there
+        self.players[-self.turn].discovered_cells.add((x, y))
+        self.players[-self.turn].update_ships_sunk()
+
+        if not (x, y) in self.players[-self.turn].ships_cells:
+            self.turn = -self.turn  # Next player if missed
         return True
 
 
@@ -136,7 +166,8 @@ def random_ship_pos(length: int) -> BNShip:
     Returns:
         BNShip: The ship created.
     """
-    x, y = rd.randint(0, BOARD_LENGTH - length), rd.randint(0, BOARD_LENGTH - length)
+    x = rd.randint(0, BOARD_LENGTH - length)
+    y = rd.randint(0, BOARD_LENGTH - length)
     ori = rd.choice(list(BNShipOrientation))
     return BNShip(x, y, length, ori)
 
@@ -148,7 +179,7 @@ def create_random_ships_grid() -> List[BNShip]:
         List[BNShip]: A list with the ship positions.
     """
     ships = []
-    for size in SHIP_SIZES: 
+    for size in SHIP_SIZES:
         # Looks for a possible place for each size of ship, and adds it to the result
         while True:
             ship = random_ship_pos(size)
@@ -156,4 +187,3 @@ def create_random_ships_grid() -> List[BNShip]:
                 break
         ships.append(ship)
     return ships
-
