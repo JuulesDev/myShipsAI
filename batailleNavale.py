@@ -32,13 +32,26 @@ class BNShip:
         # Used for debug purposes
         return f"BNShip<x: {self.x}, y: {self.y}, len: {self.length}, ori: {self.orientation.name}>"
 
+    def get_cells(self) -> List[Tuple[int, int]]:
+        """Computes the position of each cell of the ship.
+
+        Returns:
+            List(Tuple(int, int)): The list of the cell positions [(x1, y1), (x2, y2), ...].
+        """
+        res = []
+        for i_cell in range(self.length):
+            cell_x = self.x + i_cell * self.orientation.value[0]
+            cell_y = self.y + i_cell * self.orientation.value[1]
+            res.append((cell_x, cell_y))
+        return res
+
 
 class BNPlayer:
     """Represents a player of the Bataille Navale.
     """
-    def __init__(self) -> None:
-        self.sightGrid = []
-        self.boatGrid = []
+    def __init__(self, ships) -> None:
+        self.sightGrid = set()
+        self.shipsGrid = ships
 
 
 class BatailleNavale:
@@ -46,8 +59,8 @@ class BatailleNavale:
     """
     def __init__(self) -> None:
         self.players = {
-            1: BNPlayer(),
-            -1: BNPlayer()
+            1: BNPlayer(create_random_ships_grid()),
+            -1: BNPlayer(create_random_ships_grid())
         }
         self.turn = 1
 
@@ -66,13 +79,11 @@ def check_ships_overlap(ships: List[BNShip]) -> bool:
     """
     already_used_cells = set()
     for ship in ships:
-        for i_cell in range(ship.length):
-            cell_x = ship.x + i_cell * ship.orientation.value[0]
-            cell_y = ship.y + i_cell * ship.orientation.value[1]
-            if (cell_x, cell_y) in already_used_cells:
+        for cell in ship.get_cells():
+            if cell in already_used_cells:
                 return True
             else:
-                already_used_cells.add((cell_x, cell_y))
+                already_used_cells.add(cell)
     return False
 
 
@@ -105,3 +116,19 @@ def create_random_ships_grid() -> List[BNShip]:
                 break
         ships.append(ship)
     return ships
+
+
+def ships_to_ascii(ships: List[BNShip]) -> str:
+    """Creates a ~beautiful~ ASCII grid from the ship list.
+
+    Args:
+        ships (List[BNShip]): The ships on the grid.
+
+    Returns:
+        str: The ASCII drawing.
+    """
+    grid = [['.' for _ in range(BOARD_LENGTH)] for _ in range(BOARD_LENGTH)]
+    for ship in ships:
+        for cell in ship.get_cells():
+            grid[cell[1]][cell[0]] = 'X'
+    return '\n'.join([''.join(line) for line in grid])
