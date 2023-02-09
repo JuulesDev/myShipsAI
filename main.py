@@ -1,30 +1,16 @@
-from pprint import pprint
 import time
 from typing import *
-from random import randint
-from BNGame import *
 
+from BNGame import *
 from BN_AIs import *
 
 """
     98% of the content of this file is for test purposes!
 """
-
-
-# def ships_to_ascii(ships: List[BNShip]) -> str:
-#     """Creates a ~beautiful~ ASCII grid from the ship list.
-
-#     Args:
-#         ships (List[BNShip]): The ships on the grid.
-
-#     Returns:
-#         str: The ASCII drawing.
-#     """
-#     grid = [["." for _ in range(10)] for _ in range(10)]
-#     for ship in ships:
-#         for cell in ship.get_cells():
-#             grid[cell[1]][cell[0]] = "X"
-#     return "\n".join(["".join(line) for line in grid])
+AIs_used = [
+    random_AI,
+    random_AI
+]
 
 
 def print_board(game: BNGame) -> None:
@@ -53,9 +39,9 @@ if __name__ == "__main__":
 
         move = None
         if game.turn == 1:
-            move = random_AI(game.get_discovered_board())
+            move = AIs_used[0](game.get_discovered_board())
         else:
-            move = random_AI(game.get_discovered_board())
+            move = AIs_used[1](game.get_discovered_board())
 
         game.play(move)
         time.sleep(.5)
