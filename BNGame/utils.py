@@ -3,6 +3,7 @@ import random as rd
 
 from .ship import BNShip, BNShipOrientation
 
+
 def check_ships_overlap(ships: List[BNShip]) -> bool:
     """Tells if a list of ships overlap or not.
 

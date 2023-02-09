@@ -4,6 +4,7 @@ from enum import Enum
 from .utils import create_random_ships_grid
 from .player import BNPlayer
 
+
 class BNCellStatus(Enum):
     """Represents the status of a cell from a player perspective.
     """
@@ -11,13 +12,13 @@ class BNCellStatus(Enum):
     MISSED = 1
     HIT = 2
     SUNK = 3
- 
+
 
 class BNGame:
     """Represents a game of Bataille Navale.
     """
 
-    def __init__(self, board_length: int=10, ships_sizes: List[int]=[5, 4, 3, 3, 2]) -> None:
+    def __init__(self, board_length: int = 10, ships_sizes: List[int] = [5, 4, 3, 3, 2]) -> None:
         self.board_length = board_length
         self.ship_sizes = ships_sizes
         self.players = {
@@ -26,16 +27,16 @@ class BNGame:
         }
         self.turn = 1
 
-    def play(self, x: int, y: int) -> bool:
+    def play(self, pos: Tuple[int, int]) -> bool:
         """Makes the right player shoot somewhere on the board.
 
         Args:
-            x (int): The x coordinate of the shoot.
-            y (int): The y coordinate of the shoot.
+            pos (Tuple[int, int]): The (x, y) coordinates of the shoot.
 
         Returns:
             bool: True if everything went well, False otherwise.
         """
+        x, y = pos
         if not (0 <= x < self.board_length and 0 <= y < self.board_length):
             return False  # Shot out of the board
         if (x, y) in self.players[-self.turn].discovered_cells:
@@ -46,7 +47,7 @@ class BNGame:
         if not (x, y) in self.players[-self.turn].ships_cells:
             self.turn = -self.turn  # Next player if missed
         return True
-    
+
     def get_discovered_board(self) -> List[List[BNCellStatus]]:
         player = self.players[-self.turn]
         res = [

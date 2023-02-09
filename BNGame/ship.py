@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import *
 
+
 class BNShipOrientation(Enum):
     """Represents the orientation that can have a BNShip.
 
@@ -8,6 +9,7 @@ class BNShipOrientation(Enum):
     """
     HORIZONTAL = (1, 0)
     VERTICAL = (0, 1)
+
 
 class BNShip:
     """Represents a ship of the Bataille Navale.

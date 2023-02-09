@@ -16,8 +16,6 @@ class BNPlayer:
         self.ships_sunk = []
         self.ships_sunk_cells = set()
 
-    
-
     def update_ships_sunk(self) -> None:
         """Update the list of sunk ships.
         """

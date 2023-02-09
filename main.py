@@ -4,6 +4,8 @@ from typing import *
 from random import randint
 from BNGame import *
 
+from BN_AIs import *
+
 """
     98% of the content of this file is for test purposes!
 """
@@ -48,23 +50,12 @@ if __name__ == "__main__":
     while True:
         print(game.turn)
         print_board(game)
-        
-        game.play(randint(0, 10), randint(0, 10))
+
+        move = None
+        if game.turn == 1:
+            move = random_AI(game.get_discovered_board())
+        else:
+            move = random_AI(game.get_discovered_board())
+
+        game.play(move)
         time.sleep(.5)
-        
-        # if game.turn == 1:
-
-        #     pos = input("Player 1: ").split(" ")
-
-        #     if len(pos) != 2:
-        #         continue
-
-        #     try:
-        #         pos = list(map(int, pos))
-        #     except:
-        #         continue
-
-        #     if not game.play(pos[0], pos[1]):
-        #         print("! TRY AGAIN !")
-        # else:
-        #     game.play(randint(0, 10), randint(0, 10))
